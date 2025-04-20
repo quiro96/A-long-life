@@ -11,19 +11,20 @@ export function initAudio() {
     } catch (error) { console.error("Error initializing Tone.js noise:", error); state.backgroundNoise = null; }
 }
 
+// --- Esporta questa funzione ---
 export async function startAudioContextAndNoise() {
-    if (!state.backgroundNoise || state.isToneStarted) return false; // Non inizializzato o già partito
+    if (!state.backgroundNoise || state.isToneStarted) return false;
      try {
-        await Tone.start();
+        await Tone.start(); // Cruciale per interazione utente (tocco o tasto)
         state.isToneStarted = true;
-        console.log("Tone.js context started.");
+        console.log("Tone.js context started by user interaction.");
         if (state.backgroundNoise.state !== "started") {
              state.backgroundNoise.start();
         }
-         return true; // Successo
+         return true;
     } catch (error) {
         console.error("Error starting Tone.js context:", error);
-        return false; // Fallimento
+        return false;
     }
 }
 
