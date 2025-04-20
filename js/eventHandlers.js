@@ -1,76 +1,103 @@
-// js/mainLoop.js
+// js/eventHandlers.js
 import { config } from './config.js';
 import { state } from './state.js';
-import {
-    updateTimerDisplay, updateTimelineVisuals,
-    handleTitleVisibility, updateYearGrid,
-    updatePromptDisplay, updateAnimationDisplay,
-    updateAutoAdvanceButtonVisibility // *** AGGIUNTO IMPORT ***
-} from './ui.js';
+import { updatePromptDisplay, checkAndShowInactivityPrompt, setTimelineGlow, updateAutoAdvanceButtonVisibility } from './ui.js';
+import { startAudioContextAndNoise, rampVolume } from './audio.js';
 
-function easeInOutExpo(t) { if (t === 0 || t === 1) return t; if (t < 0.5) return Math.pow(2, 20 * t - 10) / 2; return (2 - Math.pow(2, -20 * t + 10)) / 2; }
-
-function updateTimerAndTimelineLogic(deltaTimeMs) {
-    if (state.isMovingRight) { // Controlla stato (manuale o automatico)
-        // console.log(`[Loop] Updating time/width. Delta: ${deltaTimeMs.toFixed(1)}ms`); // Log rimosso per pulizia
-        const timeIncrement = (deltaTimeMs * config.timeMultiplier) / 1000;
-        state.totalHoldTimeSec += timeIncrement;
-        const maxWidthPx = window.innerWidth / 2;
-        if (state.currentWidthPx < maxWidthPx) {
-            const widthIncrement = (config.speedPxPerSec * deltaTimeMs) / 1000;
-            state.currentWidthPx = Math.min(state.currentWidthPx + widthIncrement, maxWidthPx);
-            // console.log(`[Loop] New time: ${state.totalHoldTimeSec.toFixed(3)}s, New width: ${state.currentWidthPx.toFixed(1)}px`); // Log rimosso
-        }
-         // else { console.log(`[Loop] Max width reached (${maxWidthPx}px). Time: ${state.totalHoldTimeSec.toFixed(3)}s`); } // Log rimosso
+// --- !!! AGGIUNTO 'export' QUI !!! ---
+export function handleAutoAdvanceClick() {
+    // Recupera l'elemento bottone da elements (deve essere popolato da init)
+    const buttonElement = elements.autoAdvanceButton; // Usa l'oggetto 'elements'
+    if (!buttonElement) {
+        console.warn("[handleAutoAdvanceClick] Button element not found in 'elements' object.");
+        return;
     }
-}
 
-function handleTimelineEvents() {
-    if (state.isTitleVisible) return;
-    let activePromptText = null;
-    let activePromptId = null;
-    let activeAnimationId = null;
-    let activeEvent = null;
-    for (const event of config.timelineEvents) {
-        if (event.type !== 'title' && state.totalHoldTimeSec >= event.start && state.totalHoldTimeSec < event.end) {
-             activeEvent = event; break;
+    // Inverti lo stato di avanzamento automatico
+    state.isAutoAdvancing = !state.isAutoAdvancing;
+    console.log(`[handleAutoAdvanceClick] Auto-advance toggled to: ${state.isAutoAdvancing}`);
+
+    if (state.isAutoAdvancing) {
+        // Attivato Auto-Advance
+        state.isMovingRight = true; // Simula pressione tasto
+        state.lastTimestampMs = 0;
+        if (state.currentPromptId === 'inactive_initial' || state.currentPromptId === 'inactive_shine') {
+            updatePromptDisplay();
         }
-    }
-    const wasTimelineEventActive = state.currentPromptId && state.currentPromptId !== 'inactive_initial' && state.currentPromptId !== 'inactive_shine';
-    const wasTimelineAnimActive = state.currentAnimationId;
-    if (activeEvent) {
-        activePromptText = activeEvent.text || null;
-        activePromptId = activeEvent.id;
-        activeAnimationId = (activeEvent.type === 'animation') ? activeEvent.id : null;
-        if (state.currentPromptId === 'inactive_initial' || state.currentPromptId === 'inactive_shine') { updatePromptDisplay(); }
-         clearTimeout(state.inactivityTimeoutId); state.inactivityTimeoutId = null;
+        clearTimeout(state.inactivityTimeoutId); state.inactivityTimeoutId = null;
+        setTimelineGlow(true);
+        rampVolume(config.noiseMaxVolume, config.audioRampExpandDuration);
     } else {
-        if (wasTimelineEventActive) { activePromptText = null; activePromptId = null; }
-        else { activePromptText = undefined; activePromptId = undefined; }
-         if (wasTimelineAnimActive) { activeAnimationId = null; }
-         else { activeAnimationId = undefined; }
+        // Disattivato Auto-Advance
+        state.isMovingRight = false;
+        setTimelineGlow(false);
+        rampVolume(config.noiseMinVolume, config.audioRampShrinkDuration);
+        clearTimeout(state.inactivityTimeoutId);
+        const delay = state.totalHoldTimeSec === 0 ? config.initialInactivityDelayMs : config.shineInactivityDelayMs;
+        state.inactivityTimeoutId = setTimeout(checkAndShowInactivityPrompt, delay);
     }
-    if (activePromptId !== undefined) { updatePromptDisplay(activePromptText, activePromptId); }
-     if (activeAnimationId !== undefined) { updateAnimationDisplay(activeAnimationId); }
+
+    // Aggiorna l'aspetto del bottone (classe .active)
+    updateAutoAdvanceButtonVisibility(); // Questa funzione ora gestisce anche la classe 'active'
+}
+// --- FINE CORREZIONE ---
+
+
+export async function handleKeyDown(event) {
+    if (event.key !== "ArrowRight") return;
+
+    if (state.isAutoAdvancing) {
+         console.log('[handleKeyDown] Manual input detected, disabling auto-advance.');
+         // Chiama la funzione per disattivare l'auto-advance
+         // Assicurati che questa funzione sia definita e accessibile (lo è perché esportata)
+         handleAutoAdvanceClick();
+    }
+
+    if (state.isMovingRight) return; // Già in movimento manuale
+
+    event.preventDefault();
+
+    clearTimeout(state.inactivityTimeoutId); state.inactivityTimeoutId = null;
+    if (state.currentPromptId === 'inactive_initial' || state.currentPromptId === 'inactive_shine') {
+        updatePromptDisplay();
+    }
+
+    state.isMovingRight = true; // Attiva movimento manuale
+    state.lastTimestampMs = 0;
+
+    // Audio
+    if (!state.isToneStarted) {
+        const success = await startAudioContextAndNoise();
+        if (success) { rampVolume(config.noiseMaxVolume, config.audioRampExpandDuration); }
+    } else {
+         rampVolume(config.noiseMaxVolume, config.audioRampExpandDuration);
+    }
+    // Glow
+    setTimelineGlow(true);
 }
 
-function animationLoop(timestampMs) {
-    state.animationFrameId = requestAnimationFrame(animationLoop);
-    if (state.lastTimestampMs === 0) { state.lastTimestampMs = timestampMs; return; }
-    const deltaTimeMs = timestampMs - state.lastTimestampMs;
-    state.lastTimestampMs = timestampMs;
-    if (deltaTimeMs <= 0 || deltaTimeMs > 500) { return; }
+export function handleKeyUp(event) {
+    if (event.key !== "ArrowRight") return;
 
-    updateTimerAndTimelineLogic(deltaTimeMs);
-    updateTimerDisplay();
-    updateTimelineVisuals();
-    handleTitleVisibility();
-    handleTimelineEvents();
-    updateYearGrid();
-    // --- AGGIUNTA CHIAMATA PER BOTTONE ---
-    updateAutoAdvanceButtonVisibility(); // Aggiorna visibilità/stato bottone
-    // --- FINE AGGIUNTA ---
+    // Ignora keyUp se l'auto-avanzamento è attivo (è stato disattivato da keyDown)
+    if (state.isAutoAdvancing) {
+        // console.log('[handleKeyUp] Key released, but auto-advance was active.'); // Log opzionale
+        return;
+    }
+
+     // Ignora se non era in movimento (es. doppio keyup)
+     if (!state.isMovingRight) return;
+
+    event.preventDefault();
+    state.isMovingRight = false; // Ferma movimento manuale
+
+    // Audio
+    rampVolume(config.noiseMinVolume, config.audioRampShrinkDuration);
+    // Glow
+    setTimelineGlow(false);
+
+    // Imposta timer inattività
+    clearTimeout(state.inactivityTimeoutId);
+    const delay = state.totalHoldTimeSec === 0 ? config.initialInactivityDelayMs : config.shineInactivityDelayMs;
+    state.inactivityTimeoutId = setTimeout(checkAndShowInactivityPrompt, delay);
 }
-
-export function startAnimationLoop() { if (state.animationFrameId === null) { state.lastTimestampMs = 0; state.animationFrameId = requestAnimationFrame(animationLoop); console.log("Animation loop started."); } }
-export function stopAnimationLoop() { if (state.animationFrameId) { cancelAnimationFrame(state.animationFrameId); state.animationFrameId = null; console.log("Animation loop stopped."); } }
