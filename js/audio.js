@@ -1,6 +1,6 @@
 // js/audio.js
 import { config } from './config.js';
-import { state } from './state.js'; // Importa per modificare state.backgroundNoise e state.isToneStarted
+import { state } from './state.js';
 
 export function initAudio() {
     try {
@@ -12,7 +12,7 @@ export function initAudio() {
 }
 
 export async function startAudioContextAndNoise() {
-    if (!state.backgroundNoise || state.isToneStarted) return; // Già avviato o non inizializzato
+    if (!state.backgroundNoise || state.isToneStarted) return false; // Non inizializzato o già partito
      try {
         await Tone.start();
         state.isToneStarted = true;
