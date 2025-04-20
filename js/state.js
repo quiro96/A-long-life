@@ -1,4 +1,4 @@
-// js/state.js
+// js/state.js -
 export let state = {
     isMovingRight: false,
     currentWidthPx: 0,
