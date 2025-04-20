@@ -1,4 +1,4 @@
-// js/animations.js
+// js/animations.js ok
 import { config } from './config.js';
 import { elements } from './elements.js';
 
