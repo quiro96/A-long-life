@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A Long Life (Full Journey)</title> <!-- Titolo aggiornato -->
+    <title>A Long Life (Final Polish)</title> <!-- Titolo aggiornato -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&display=swap" rel="stylesheet">
@@ -14,18 +14,27 @@
         .container { display: flex; justify-content: center; align-items: center; min-height: 100vh; width: 100%; position: relative; }
         /* Title */
         #title-container { position: absolute; top: 0; left: 0; height: 100vh; width: 100%; display: flex; justify-content: center; align-items: center; z-index: 3; pointer-events: none; transition: opacity 1.5s ease-out; }
-        #title-h1 { font-size: 3.5rem; font-weight: 700; opacity: 1; /* Start visible for CSS fade */ transition: opacity 1.5s ease-in-out; }
-        #title-h1.title-visible { opacity: 1; } #title-h1.title-hidden { opacity: 0; }
+        #title-h1 {
+            font-size: 3.5rem; font-weight: 700;
+            /* --- CORREZIONE: Deve partire invisibile --- */
+            opacity: 0;
+            /* --- FINE CORREZIONE --- */
+            pointer-events: none;
+            transition: opacity 1.5s ease-in-out;
+        }
+        #title-h1.title-visible { opacity: 1; }
+        #title-h1.title-hidden { opacity: 0; } /* Questa classe è ridondante se parte da 0, ma la lasciamo */
+
         /* Prompt */
         #prompt-container { position: absolute; left: 75%; top: 25%; transform: translate(-50%, -50%); width: 35%; text-align: left; z-index: 2; pointer-events: none; transition: opacity 1.5s ease-out; }
         #current-prompt { font-weight: 400; font-size: 1.3rem; pointer-events: none; line-height: 1.3; opacity: 0; transition: opacity 1.5s ease-in-out; }
         #current-prompt.visible { opacity: 1; }
         /* Timeline */
-        #time-line-container { position: absolute; top: 50%; left: 0; width: 100%; height: 8px; transform: translateY(-50%); z-index: 0; transition: opacity 1.5s ease-out; opacity: 1; } /* Fade out generale */
+        #time-line-container { position: absolute; top: 50%; left: 0; width: 100%; height: 8px; transform: translateY(-50%); z-index: 0; transition: opacity 1.5s ease-out; opacity: 1; }
         #time-line-container.timeline-hidden { opacity: 0; pointer-events: none; }
         #time-line { position: absolute; height: 100%; background-color: #ffffff; width: 0px; left: 0; top: 0; border-radius: 0 4px 4px 0; box-shadow: 0 0 0px rgba(255, 255, 255, 0); }
         /* Year Grid */
-        #year-grid-container { position: absolute; top: 75%; transform: translateY(-50%); width: 80%; margin-left: auto; margin-right: auto; left: 0; right: 0; height: auto; display: grid; grid-template-columns: repeat(20, 1fr); gap: 2px; z-index: 1; opacity: 0; transition: opacity 1.5s ease-out; } /* Fade out generale */
+        #year-grid-container { position: absolute; top: 75%; transform: translateY(-50%); width: 80%; margin-left: auto; margin-right: auto; left: 0; right: 0; height: auto; display: grid; grid-template-columns: repeat(20, 1fr); gap: 2px; z-index: 1; opacity: 0; transition: opacity 1.5s ease-out; }
         #year-grid-container.visible { opacity: 1; }
         .grid-cell { border: 1px solid #444; background-color: transparent; position: relative; aspect-ratio: 1 / 1; }
         .year-square { position: absolute; top: 4px; bottom: 4px; left: 4px; right: 4px; background-color: white; opacity: 0; transition: opacity 0.5s ease-in; }
@@ -35,42 +44,23 @@
         #animation-container { position: absolute; left: 25%; top: 25%; transform: translate(-50%, -50%); width: 40%; height: 30%; pointer-events: none; opacity: 0; transition: opacity 1.5s ease-out; z-index: 1; overflow: hidden; display: flex; justify-content: center; align-items: center; filter: grayscale(1); }
          #animation-container.visible { opacity: 1; }
         /* Auto-Advance Button */
-        #auto-advance-btn { position: absolute; top: 17.5px; right: 15px; width: 25px; height: 25px; padding: 0; font-family: 'Amatic SC', cursive; font-size: 1.3rem; font-weight: 700; line-height: 1; background-color: white; color: black; border: none; border-radius: 50%; cursor: pointer; z-index: 10; opacity: 0; transition: background-color 0.3s ease, color 0.3s ease, opacity 1.5s ease-out; display: flex; justify-content: center; align-items: center; }
-        #auto-advance-btn.visible { opacity: 1; }
+        #auto-advance-btn { position: absolute; top: 11px; right: 15px; width: 35px; height: 35px; padding: 0; font-family: 'Amatic SC', cursive; font-size: 1.3rem; font-weight: 700; line-height: 1; background-color: white; color: black; border: none; border-radius: 50%; cursor: pointer; z-index: 10; opacity: 0; transition: background-color 0.3s ease, color 0.3s ease, opacity 1.5s ease-out; display: flex; justify-content: center; align-items: center; }
+        #auto-advance-btn.visible { display: flex; opacity: 1; }
         #auto-advance-btn.active { background-color: #555; color: #ccc; }
-
-        /* --- NUOVO: Stile per Schermata Finale --- */
-        #end-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; justify-content: center; align-items: center;
-            font-size: 4rem; font-weight: 700;
-            color: white;
-            background-color: rgba(0, 0, 0, 0.8); /* Sfondo semi-trasparente opzionale */
-            opacity: 0;
-            z-index: 20; /* Sopra tutto il resto */
-            pointer-events: none; /* Non interagibile */
-            transition: opacity 2.5s ease-in 1s; /* Fade in dopo 1s */
-        }
-        #end-screen.visible {
-            opacity: 1;
-        }
-
-        /* --- NUOVO: Classe Fade Out Generale --- */
-        .fade-out-final {
-             opacity: 0 !important; /* Forza opacità a 0 */
-             pointer-events: none !important; /* Disabilita interazione */
-        }
-
+        /* End Screen */
+        #end-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; font-size: 4rem; font-weight: 700; color: white; background-color: rgba(0, 0, 0, 0.8); opacity: 0; z-index: 20; pointer-events: none; transition: opacity 2.5s ease-in 1s; }
+        #end-screen.visible { opacity: 1; }
+        /* Fade Out Generale */
+        .fade-out-final { opacity: 0 !important; pointer-events: none !important; /* La transizione è sull'elemento base */ }
 
         /* Elementi Animazioni (CSS Invariato) */
         /* ... (CSS per .happy-circle, .fade-particle, #brain-svg, etc. rimane qui) ... */
-        .happy-circle { position: absolute; width: 8px; height: 8px; background-color: rgba(255, 255, 255, 0.7); border-radius: 50%; animation: floatUp 6s infinite ease-in-out; bottom: 0; opacity: 0; } @keyframes floatUp { 0% { transform: translateY(0); opacity: 0; } 25%, 75% { opacity: 0.7; } 100% { transform: translateY(-150px); opacity: 0; } } .fade-particle { position: absolute; width: 5px; height: 5px; background-color: rgba(255, 255, 255, 0.6); border-radius: 1px; animation: fadeOutParticle 1.5s infinite ease-out; opacity: 0; } @keyframes fadeOutParticle { 0% { opacity: 0.7; transform: translate(0, 0); } 100% { opacity: 0; transform: translate(10px, -20px); } } #brain-svg { width: 80%; height: 80%; stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: drawBrain 3s ease-in-out forwards; stroke: white; stroke-width: 1.5; fill: none; } @keyframes drawBrain { to { stroke-dashoffset: 0; } } .stacking-block { position: absolute; width: 15px; height: 10px; background-color: white; border: 1px solid #aaa; opacity: 0; animation: stackBlock 4s ease-in-out forwards; } @keyframes stackBlock { 0% { opacity: 0; transform: translateY(20px); } 50% { opacity: 1; } 100% { opacity: 1; transform: translateY(0); } } .stacking-block:nth-child(1) { bottom: 0; left: 45%; animation-delay: 0s; } .stacking-block:nth-child(2) { bottom: 10px; left: 45%; animation-delay: 0.5s; } .stacking-block:nth-child(3) { bottom: 20px; left: 45%; animation-delay: 1s; } .stacking-block:nth-child(4) { bottom: 0px; left: 55%; animation-delay: 0.2s; } .stacking-block:nth-child(5) { bottom: 10px; left: 55%; animation-delay: 0.7s; } .intertwining-circle { position: absolute; width: 40px; height: 40px; border: 2px solid white; border-radius: 50%; opacity: 0; animation: intertwine 5s infinite ease-in-out alternate; } .intertwining-circle:nth-child(1) { top: 30%; left: 30%; animation-delay: 0s; } .intertwining-circle:nth-child(2) { top: 30%; left: 50%; animation-delay: 0.5s; } .intertwining-circle:nth-child(3) { top: 50%; left: 40%; animation-delay: 1s; } @keyframes intertwine { 0% { transform: scale(0.8); opacity: 0.3; } 100% { transform: scale(1.1); opacity: 0.8; } } #footprint-svg { width: 60%; height: 60%; stroke: white; stroke-width: 1.5; fill: none; stroke-dasharray: 200; stroke-dashoffset: 200; animation: drawFootprint 2s ease-out forwards; } @keyframes drawFootprint { to { stroke-dashoffset: 0; } } #speech-bubble-svg { width: 50%; height: 50%; stroke: white; stroke-width: 1.5; fill: none; opacity: 0; animation: fadeInSpeechBubble 1s forwards; } @keyframes fadeInSpeechBubble { from { opacity: 0; } to { opacity: 1; } } .grid-line { position: absolute; background-color: rgba(255,255,255,0.4); opacity: 0; animation: drawGridLine 2s forwards; } .grid-line.horizontal { left: 10%; right: 10%; height: 1px; } .grid-line.vertical { top: 10%; bottom: 10%; width: 1px; } @keyframes drawGridLine { to { opacity: 1; } } .running-dot { position: absolute; width: 5px; height: 5px; background-color: white; border-radius: 50%; animation: runAcross 3s linear infinite; } @keyframes runAcross { 0% { left: -5%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { left: 105%; opacity: 0;} } .hanoi-block { position: absolute; width: 25px; height: 12px; border: 1px solid #ccc; background-color: #eee; opacity: 0; animation: appearBlock 1.5s ease-out forwards; } .hanoi-block:nth-child(1) { background-color: #ffdddd; bottom: 10%; left: 45%; animation-delay: 0s; } .hanoi-block:nth-child(2) { background-color: #ddffdd; bottom: calc(10% + 12px); left: 43%; width: 30px; animation-delay: 0.3s; } .hanoi-block:nth-child(3) { background-color: #ddddff; bottom: calc(10% + 24px); left: 41%; width: 35px; animation-delay: 0.6s; } @keyframes appearBlock { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } } #sun-svg { width: 50%; height: 50%; opacity: 0; animation: appearSun 2s ease-in forwards; stroke: #FFD700; stroke-width: 2; fill: none; filter: drop-shadow(0 0 5px #FFD700); } @keyframes appearSun { from { opacity: 0; transform: scale(0.2) rotate(-90deg); } to { opacity: 1; transform: scale(1) rotate(0deg); } }
+         .happy-circle { position: absolute; width: 8px; height: 8px; background-color: rgba(255, 255, 255, 0.7); border-radius: 50%; animation: floatUp 6s infinite ease-in-out; bottom: 0; opacity: 0; } @keyframes floatUp { 0% { transform: translateY(0); opacity: 0; } 25%, 75% { opacity: 0.7; } 100% { transform: translateY(-150px); opacity: 0; } } .fade-particle { position: absolute; width: 5px; height: 5px; background-color: rgba(255, 255, 255, 0.6); border-radius: 1px; animation: fadeOutParticle 1.5s infinite ease-out; opacity: 0; } @keyframes fadeOutParticle { 0% { opacity: 0.7; transform: translate(0, 0); } 100% { opacity: 0; transform: translate(10px, -20px); } } #brain-svg { width: 80%; height: 80%; stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: drawBrain 3s ease-in-out forwards; stroke: white; stroke-width: 1.5; fill: none; } @keyframes drawBrain { to { stroke-dashoffset: 0; } } .stacking-block { position: absolute; width: 15px; height: 10px; background-color: white; border: 1px solid #aaa; opacity: 0; animation: stackBlock 4s ease-in-out forwards; } @keyframes stackBlock { 0% { opacity: 0; transform: translateY(20px); } 50% { opacity: 1; } 100% { opacity: 1; transform: translateY(0); } } .stacking-block:nth-child(1) { bottom: 0; left: 45%; animation-delay: 0s; } .stacking-block:nth-child(2) { bottom: 10px; left: 45%; animation-delay: 0.5s; } .stacking-block:nth-child(3) { bottom: 20px; left: 45%; animation-delay: 1s; } .stacking-block:nth-child(4) { bottom: 0px; left: 55%; animation-delay: 0.2s; } .stacking-block:nth-child(5) { bottom: 10px; left: 55%; animation-delay: 0.7s; } .intertwining-circle { position: absolute; width: 40px; height: 40px; border: 2px solid white; border-radius: 50%; opacity: 0; animation: intertwine 5s infinite ease-in-out alternate; } .intertwining-circle:nth-child(1) { top: 30%; left: 30%; animation-delay: 0s; } .intertwining-circle:nth-child(2) { top: 30%; left: 50%; animation-delay: 0.5s; } .intertwining-circle:nth-child(3) { top: 50%; left: 40%; animation-delay: 1s; } @keyframes intertwine { 0% { transform: scale(0.8); opacity: 0.3; } 100% { transform: scale(1.1); opacity: 0.8; } } #footprint-svg { width: 60%; height: 60%; stroke: white; stroke-width: 1.5; fill: none; stroke-dasharray: 200; stroke-dashoffset: 200; animation: drawFootprint 2s ease-out forwards; } @keyframes drawFootprint { to { stroke-dashoffset: 0; } } #speech-bubble-svg { width: 50%; height: 50%; stroke: white; stroke-width: 1.5; fill: none; opacity: 0; animation: fadeInSpeechBubble 1s forwards; } @keyframes fadeInSpeechBubble { from { opacity: 0; } to { opacity: 1; } } .grid-line { position: absolute; background-color: rgba(255,255,255,0.4); opacity: 0; animation: drawGridLine 2s forwards; } .grid-line.horizontal { left: 10%; right: 10%; height: 1px; } .grid-line.vertical { top: 10%; bottom: 10%; width: 1px; } @keyframes drawGridLine { to { opacity: 1; } } .running-dot { position: absolute; width: 5px; height: 5px; background-color: white; border-radius: 50%; animation: runAcross 3s linear infinite; } @keyframes runAcross { 0% { left: -5%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { left: 105%; opacity: 0;} } .hanoi-block { position: absolute; width: 25px; height: 12px; border: 1px solid #ccc; background-color: #eee; opacity: 0; animation: appearBlock 1.5s ease-out forwards; } .hanoi-block:nth-child(1) { background-color: #ffdddd; bottom: 10%; left: 45%; animation-delay: 0s; } .hanoi-block:nth-child(2) { background-color: #ddffdd; bottom: calc(10% + 12px); left: 43%; width: 30px; animation-delay: 0.3s; } .hanoi-block:nth-child(3) { background-color: #ddddff; bottom: calc(10% + 24px); left: 41%; width: 35px; animation-delay: 0.6s; } @keyframes appearBlock { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } } #sun-svg { width: 50%; height: 50%; opacity: 0; animation: appearSun 2s ease-in forwards; stroke: #FFD700; stroke-width: 2; fill: none; filter: drop-shadow(0 0 5px #FFD700); } @keyframes appearSun { from { opacity: 0; transform: scale(0.2) rotate(-90deg); } to { opacity: 1; transform: scale(1) rotate(0deg); } }
 
     </style>
 </head>
 <body>
-    <!-- Elementi Strutturali -->
+    <!-- Struttura HTML Invariata -->
     <div id="title-container" class="container"><h1 id="title-h1">A LONG LIFE</h1></div>
     <div id="prompt-container"><p id="current-prompt"></p></div>
     <div id="time-line-container"><div id="time-line"></div></div>
@@ -78,9 +68,7 @@
     <div id="timer-display">0.0s</div>
     <div id="animation-container"></div>
     <button id="auto-advance-btn">>></button>
-
-    <!-- NUOVO: Schermata Finale -->
-    <div id="end-screen">The End</div>
+    <div id="end-screen">The End</div> <!-- Schermata finale -->
 
     <script type="module" src="js/init.js"></script>
 </body>
