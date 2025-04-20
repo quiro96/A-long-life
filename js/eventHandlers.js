@@ -1,4 +1,4 @@
-// js/eventHandlers.js
+// js/eventHandlers.js -
 import { config } from './config.js';
 import { state } from './state.js';
 import { elements } from './elements.js';
