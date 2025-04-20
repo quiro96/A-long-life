@@ -3,8 +3,7 @@ import { config } from './config.js';
 import { state } from './state.js';
 import { elements } from './elements.js';
 import { initAudio } from './audio.js';
-// *** AGGIUNTO handleAutoAdvanceClick ALL'IMPORT ***
-import { handleKeyDown, handleKeyUp, handleAutoAdvanceClick } from './eventHandlers.js';
+import { handleKeyDown, handleKeyUp, handleAutoAdvanceClick } from './eventHandlers.js'; // Assicurati che questo import sia corretto
 import { startAnimationLoop } from './mainLoop.js';
 import { checkAndShowInactivityPrompt } from './ui.js';
 
@@ -19,14 +18,23 @@ function initializeExperience() {
          if (element) {
              elements[key] = element;
          } else {
-              // Logga un warning solo se l'elemento non è uno degli SVG creati dinamicamente o il bottone (che potrebbe non esistere subito)
-              if (!['brainSvg', 'footprintSvg', 'speechBubbleSvg', 'sunSvg', 'autoAdvanceButton'].includes(key)) {
-                 console.warn(`Initialization warning: Element with ID '${config.ids[key]}' not found.`);
-              } else {
-                   elements[key] = null; // Imposta a null se non trovato inizialmente
-              }
+             // Logga un warning solo se l'elemento non è uno degli SVG o il bottone
+             if (!['brainSvg', 'footprintSvg', 'speechBubbleSvg', 'sunSvg', 'autoAdvanceButton'].includes(key)) {
+                console.warn(`Initialization warning: Element with ID '${config.ids[key]}' not found.`);
+             }
+             elements[key] = null; // Imposta a null se non trovato
          }
     });
+
+    // --- AGGIUNTO LOG SPECIFICO PER IL BOTTONE ---
+    console.log("[Init] Attempting to find button with ID:", config.ids.autoAdvanceButton);
+    if (elements.autoAdvanceButton) {
+        console.log("[Init] Auto-advance button FOUND.");
+    } else {
+         console.error("[Init] Auto-advance button element NOT FOUND during element search loop."); // Errore se non trovato qui
+    }
+    // --- FINE LOG SPECIFICO ---
+
 
     // Imposta transizioni CSS iniziali
     if(elements.currentPrompt) elements.currentPrompt.style.transition = `opacity ${config.promptFadeDuration}s ease-in-out`;
@@ -34,6 +42,9 @@ function initializeExperience() {
     if(elements.yearGridContainer) elements.yearGridContainer.style.transition = `opacity 1.0s ease-in`;
     if(elements.titleH1) elements.titleH1.style.transition = `opacity 1.5s ease-in-out`;
     if(elements.timeLineContainer) elements.timeLineContainer.style.transition = `opacity 1.0s ease-out`;
+    // Aggiungiamo transizione anche per il bottone se non già fatta via CSS globale
+    if(elements.autoAdvanceButton) elements.autoAdvanceButton.style.transition = 'background-color 0.3s ease, color 0.3s ease, opacity 0.5s ease-in-out';
+
 
     // Crea Celle Griglia Anni
      if(elements.yearGridContainer) {
@@ -52,14 +63,13 @@ function initializeExperience() {
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
 
-    // --- AGGIUNGI LISTENER BOTTONE ---
+    // Aggiungi Listener Bottone (verificando di nuovo l'esistenza)
     if (elements.autoAdvanceButton) {
         elements.autoAdvanceButton.addEventListener('click', handleAutoAdvanceClick);
-        console.log("Auto-advance button listener added.");
+        console.log("[Init] Auto-advance button listener ADDED.");
     } else {
-         console.warn("Auto-advance button element not found during initialization. Click will not work.");
+         console.warn("[Init] Auto-advance button element not available to add listener.");
     }
-    // --- FINE AGGIUNTA LISTENER ---
 
     // Imposta il primo timer per il prompt di inattività iniziale
      clearTimeout(state.inactivityTimeoutId);
