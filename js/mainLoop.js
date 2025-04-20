@@ -1,4 +1,4 @@
-// js/mainLoop.js
+// js/mainLoop.js -
 import { config } from './config.js';
 import { state } from './state.js';
 import {
