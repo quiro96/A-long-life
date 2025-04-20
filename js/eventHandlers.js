@@ -1,19 +1,16 @@
-// js/eventHandlers.js - fix
+// js/eventHandlers.js
 import { config } from './config.js';
 import { state } from './state.js';
-// --- !!! AGGIUNGERE IMPORT QUI !!! ---
 import { elements } from './elements.js';
-// --- FINE AGGIUNTA IMPORT ---
 import { updatePromptDisplay, checkAndShowInactivityPrompt, setTimelineGlow, updateAutoAdvanceButtonVisibility } from './ui.js';
 import { startAudioContextAndNoise, rampVolume } from './audio.js';
 
 export function handleAutoAdvanceClick() {
-    // Ora 'elements' dovrebbe essere definito grazie all'import sopra
+    // --- CONTROLLO FINE ---
+    if (state.isEnding) return; // Non fare nulla se sta finendo
+
     const buttonElement = elements.autoAdvanceButton;
-    if (!buttonElement) {
-        console.warn("[handleAutoAdvanceClick] Button element not found in 'elements' object.");
-        return;
-    }
+    if (!buttonElement) return;
 
     state.isAutoAdvancing = !state.isAutoAdvancing;
     console.log(`[handleAutoAdvanceClick] Auto-advance toggled to: ${state.isAutoAdvancing}`);
@@ -21,9 +18,7 @@ export function handleAutoAdvanceClick() {
     if (state.isAutoAdvancing) {
         state.isMovingRight = true;
         state.lastTimestampMs = 0;
-        if (state.currentPromptId === 'inactive_initial' || state.currentPromptId === 'inactive_shine') {
-            updatePromptDisplay();
-        }
+        if (state.currentPromptId === 'inactive_initial' || state.currentPromptId === 'inactive_shine') { updatePromptDisplay(); }
         clearTimeout(state.inactivityTimeoutId); state.inactivityTimeoutId = null;
         setTimelineGlow(true);
         rampVolume(config.noiseMaxVolume, config.audioRampExpandDuration);
@@ -38,39 +33,35 @@ export function handleAutoAdvanceClick() {
     updateAutoAdvanceButtonVisibility();
 }
 
-
 export async function handleKeyDown(event) {
+    // --- CONTROLLO FINE ---
+    if (state.isEnding) return;
+
     if (event.key !== "ArrowRight") return;
 
     if (state.isAutoAdvancing) {
-         console.log('[handleKeyDown] Manual input detected, disabling auto-advance.');
-         handleAutoAdvanceClick();
+         handleAutoAdvanceClick(); // Disattiva auto-advance
     }
-
     if (state.isMovingRight) return;
 
     event.preventDefault();
-
     clearTimeout(state.inactivityTimeoutId); state.inactivityTimeoutId = null;
-    if (state.currentPromptId === 'inactive_initial' || state.currentPromptId === 'inactive_shine') {
-        updatePromptDisplay();
-    }
-
+    if (state.currentPromptId === 'inactive_initial' || state.currentPromptId === 'inactive_shine') { updatePromptDisplay(); }
     state.isMovingRight = true;
     state.lastTimestampMs = 0;
 
     if (!state.isToneStarted) {
         const success = await startAudioContextAndNoise();
         if (success) { rampVolume(config.noiseMaxVolume, config.audioRampExpandDuration); }
-    } else {
-         rampVolume(config.noiseMaxVolume, config.audioRampExpandDuration);
-    }
+    } else { rampVolume(config.noiseMaxVolume, config.audioRampExpandDuration); }
     setTimelineGlow(true);
 }
 
 export function handleKeyUp(event) {
-    if (event.key !== "ArrowRight") return;
+    // --- CONTROLLO FINE ---
+    if (state.isEnding) return;
 
+    if (event.key !== "ArrowRight") return;
     if (state.isAutoAdvancing) { return; }
     if (!state.isMovingRight) return;
 
