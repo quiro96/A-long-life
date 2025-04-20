@@ -3,14 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Aggiorna il titolo se vuoi -->
-    <title>A Long Life (Modular)</title>
+    <title>A Long Life (Auto-Advance Update)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&display=swap" rel="stylesheet">
-    <!-- Non carichiamo più Tone.js qui, verrà gestito dal JS se necessario,
-         ma è meglio lasciarlo per semplicità o se qualche animazione lo usasse direttamente.
-         In alternativa, rimuovilo se sei sicuro che solo audio.js lo userà via import. -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
     <style>
         /* Basic styles */
@@ -18,6 +14,7 @@
             margin: 0; padding: 0; height: 100%;
             overflow: hidden; font-family: 'Amatic SC', cursive;
             background-color: #000000; color: #ffffff;
+            position: relative; /* Needed for absolute positioning of button */
         }
         .container {
             display: flex; justify-content: center; align-items: center;
@@ -29,10 +26,9 @@
             display: flex; justify-content: center; align-items: center;
             z-index: 3; pointer-events: none;
         }
-        /* Assicurati che H1 abbia l'ID corretto */
-        #title-h1 {
+        #title-h1 { /* ID Corretto */
             font-size: 3.5rem; font-weight: 700; opacity: 0; pointer-events: none;
-            transition: opacity 1.5s ease-in-out; /* Fade gestito da classi */
+            transition: opacity 1.5s ease-in-out;
         }
         #title-h1.title-visible { opacity: 1; }
         #title-h1.title-hidden { opacity: 0; }
@@ -46,8 +42,8 @@
         #current-prompt {
             font-weight: 400; font-size: 1.3rem;
             pointer-events: none; line-height: 1.3;
-            opacity: 0; /* Stato base nascosto */
-            transition: opacity 1.5s ease-in-out; /* Transizione fade in/out */
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
         }
         #current-prompt.visible { opacity: 1; }
 
@@ -62,41 +58,28 @@
             position: absolute; height: 100%; background-color: #ffffff;
             width: 0px; left: 0; top: 0; border-radius: 0 4px 4px 0;
             box-shadow: 0 0 0px rgba(255, 255, 255, 0);
-            /* transizione box-shadow impostata da JS */
         }
 
         /* Year Grid - Centered 25% from bottom */
         #year-grid-container {
             position: absolute;
-            /* Posiziona il bordo superiore al 75% dall'alto */
             top: 75%;
-             /* Sposta l'elemento verso l'alto della metà della sua altezza */
             transform: translateY(-50%);
-            /* Rimuovi 'bottom' se presente */
-            /* bottom: 40px; */ /* <-- Assicurati che non ci sia più */
-
-            /* Proprietà orizzontali e altre rimangono invariate */
             width: 80%;
-            margin-left: auto;
-            margin-right: auto;
-            left: 0;
-            right: 0;
+            margin-left: auto; margin-right: auto;
+            left: 0; right: 0;
             height: auto;
-            display: grid;
-            grid-template-columns: repeat(20, 1fr);
-            gap: 2px;
-            z-index: 1;
-            opacity: 0;
+            display: grid; grid-template-columns: repeat(20, 1fr);
+            gap: 2px; z-index: 1; opacity: 0;
             transition: opacity 1.0s ease-in;
         }
         #year-grid-container.visible { opacity: 1; }
-
         .grid-cell {
             border: 1px solid #444; background-color: transparent;
             position: relative; aspect-ratio: 1 / 1;
         }
         .year-square {
-            position: absolute; top: 3px; bottom: 3px; left: 3px; right: 3px;
+            position: absolute; top: 4px; bottom: 4px; left: 4px; right: 4px;
             background-color: white; opacity: 0;
             transition: opacity 0.5s ease-in;
         }
@@ -114,14 +97,41 @@
             position: absolute; left: 25%; top: 25%;
             transform: translate(-50%, -50%);
             width: 40%; height: 30%; pointer-events: none;
-            opacity: 0; /* Stato base nascosto */
-            transition: opacity 1.5s ease-in-out; /* Transizione fade in/out */
-            z-index: 1; overflow: hidden; /* Necessario per alcune animazioni interne */
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            z-index: 1; overflow: hidden;
             display: flex; justify-content: center; align-items: center;
         }
          #animation-container.visible { opacity: 1; }
 
-        /* Elementi Animazioni (CSS Invariato) */
+        /* --- NUOVO: Bottone Auto-Advance --- */
+        #auto-advance-btn {
+            position: absolute;
+            bottom: 20px; /* Posiziona sopra la griglia? O a fianco? Mettiamo in basso a dx */
+            right: 20px;
+            padding: 8px 15px;
+            font-family: 'Amatic SC', cursive;
+            font-size: 1.8rem; /* Dimensione font più grande */
+            font-weight: 700;
+            background-color: white;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 10;
+            display: none; /* Nascosto inizialmente */
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        #auto-advance-btn.visible { /* La visibilità è gestita da JS aggiungendo questa classe */
+             display: inline-block;
+        }
+        #auto-advance-btn.active { /* Stile quando l'auto-advance è attivo */
+            background-color: #555; /* Grigio scuro */
+            color: #ccc; /* Testo più chiaro */
+        }
+
+        /* --- Elementi Animazioni (Incluso nuove) --- */
+        /* Animazioni Esistenti (happy, particles, brain, etc.) - INVARIATE */
         .happy-circle { position: absolute; width: 8px; height: 8px; background-color: rgba(255, 255, 255, 0.7); border-radius: 50%; animation: floatUp 6s infinite ease-in-out; bottom: 0; opacity: 0; }
         @keyframes floatUp { 0% { transform: translateY(0); opacity: 0; } 25%, 75% { opacity: 0.7; } 100% { transform: translateY(-150px); opacity: 0; } }
         .fade-particle { position: absolute; width: 5px; height: 5px; background-color: rgba(255, 255, 255, 0.6); border-radius: 1px; animation: fadeOutParticle 1.5s infinite ease-out; opacity: 0; }
@@ -143,10 +153,43 @@
         @keyframes drawGridLine { to { opacity: 1; } }
         .running-dot { position: absolute; width: 5px; height: 5px; background-color: white; border-radius: 50%; animation: runAcross 3s linear infinite; }
         @keyframes runAcross { 0% { left: -5%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { left: 105%; opacity: 0;} }
+
+         /* --- NUOVE ANIMAZIONI SPECIFICHE --- */
+         /* Animazione per Torre di Hanoi (semplici blocchi che appaiono) */
+        .hanoi-block {
+            position: absolute;
+            width: 25px; height: 12px; border: 1px solid #ccc;
+            background-color: #eee;
+            opacity: 0;
+            animation: appearBlock 1.5s ease-out forwards;
+        }
+        .hanoi-block:nth-child(1) { background-color: #ffdddd; bottom: 10%; left: 45%; animation-delay: 0s; }
+        .hanoi-block:nth-child(2) { background-color: #ddffdd; bottom: calc(10% + 12px); left: 43%; width: 30px; animation-delay: 0.3s; }
+        .hanoi-block:nth-child(3) { background-color: #ddddff; bottom: calc(10% + 24px); left: 41%; width: 35px; animation-delay: 0.6s; }
+        @keyframes appearBlock {
+            from { opacity: 0; transform: scale(0.5); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Animazione per "Sei un sole" (sole stilizzato SVG che appare) */
+        #sun-svg {
+             width: 50%; height: 50%;
+             opacity: 0;
+             animation: appearSun 2s ease-in forwards;
+             stroke: #FFD700; /* Giallo oro */
+             stroke-width: 2;
+             fill: none;
+             filter: drop-shadow(0 0 5px #FFD700); /* Leggero glow */
+        }
+        @keyframes appearSun {
+             from { opacity: 0; transform: scale(0.2) rotate(-90deg); }
+             to { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+
     </style>
 </head>
 <body>
-    <!-- Assicurati che tutti gli elementi abbiano gli ID corretti usati in config.js -->
+    <!-- Elementi Strutturali -->
     <div id="title-container" class="container">
         <h1 id="title-h1">A LONG LIFE</h1>
     </div>
@@ -156,19 +199,14 @@
     <div id="time-line-container">
         <div id="time-line"></div>
     </div>
-    <div id="year-grid-container">
-        <!-- Le celle verranno create da JS -->
-    </div>
+    <div id="year-grid-container"></div>
     <div id="timer-display">0.0s</div>
-    <div id="animation-container">
-        <!-- Il contenuto dell'animazione verrà creato da JS -->
-    </div>
+    <div id="animation-container"></div>
 
-    <!--
-      RIMOSSO IL BLOCCO SCRIPT GRANDE DA QUI.
-      Ora carichiamo solo il punto di ingresso del modulo JS.
-    -->
+    <!-- Bottone Auto-Advance (Aggiunto) -->
+    <button id="auto-advance-btn">>></button> <!-- Doppia freccia come testo -->
+
+    <!-- Script Modulo -->
     <script type="module" src="js/init.js"></script>
-
 </body>
 </html>
