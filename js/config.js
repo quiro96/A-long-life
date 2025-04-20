@@ -1,7 +1,7 @@
 // js/config.js -
 export const config = {
     // Timing & Speed
-    speedPxPerSec: 300, timeMultiplier: 1.5, initialInactivityDelayMs: 4000,
+    speedPxPerSec: 300, timeMultiplier: 25, initialInactivityDelayMs: 4000,
     shineInactivityDelayMs: 3000, yearGridAppearTime: 45, secondsPerYearSquare: 15,
     autoAdvanceAppearTime: 60, // Appare al 2° anno (60s)
     // --- NUOVO: End Time ---
