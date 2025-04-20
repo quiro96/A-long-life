@@ -50,28 +50,47 @@
         }
          #animation-container.visible { opacity: 1; }
 
-        /* Bottone Auto-Advance - MODIFICATO: Posizione sotto timer */
+        /* Bottone Auto-Advance - MODIFICATO: Tondo, più piccolo, centrato verticalmente col timer */
         #auto-advance-btn {
             position: absolute;
-            top: 45px; /* Sotto il timer (15px top + ~20px altezza + 10px spazio) */
+            /* Calcolo T.Op: (Timer.Top + Timer.Altezza/2) - Bottone.Altezza/2 */
+            /* Timer.Top=15px, Timer.H ~26px -> Centro ~28px */
+            /* Bottone.H = 35px -> Metà ~17.5px */
+            /* Top ~ 28 - 17.5 = 10.5px -> Usiamo 11px */
+            top: 11px;
             right: 15px; /* Allineato a destra col timer */
-            padding: 5px 10px; /* Leggermente più piccolo */
+
+            /* Dimensioni esplicite per renderlo tondo */
+            width: 35px;
+            height: 35px;
+            padding: 0; /* Rimuovi padding precedente */
+
             font-family: 'Amatic SC', cursive;
-            font-size: 1.5rem; /* Leggermente più piccolo */
+            font-size: 1.3rem; /* Leggermente più piccolo */
             font-weight: 700;
+            line-height: 1; /* Aiuta a centrare il testo verticalmente */
+
             background-color: white;
             color: black;
             border: none;
-            border-radius: 5px;
+            border-radius: 50%; /* Per renderlo tondo */
             cursor: pointer;
             z-index: 10;
-            display: none; /* Nascosto inizialmente */
+
+            /* Nascondi inizialmente con fade */
+            display: none;
+            opacity: 0;
             transition: background-color 0.3s ease, color 0.3s ease, opacity 0.5s ease-in-out;
-            opacity: 0; /* Nascosto con fade */
+
+             /* Usa Flexbox per centrare il testo '>>' dentro il cerchio */
+             display: flex;
+             justify-content: center;
+             align-items: center;
         }
         #auto-advance-btn.visible {
-             display: inline-block;
-             opacity: 1; /* Visibile con fade */
+             /* display: inline-block; */ /* Non più necessario con flex */
+             display: flex; /* Manteniamo flex quando visibile */
+             opacity: 1;
         }
         #auto-advance-btn.active {
             background-color: #555;
