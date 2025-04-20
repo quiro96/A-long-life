@@ -1,2 +1,2 @@
 // js/elements.js
-export let elements = {}; // Verrà popolato da init.js
+export let elements = {}; // Viene popolato da init.js
