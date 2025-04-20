@@ -13,4 +13,6 @@ export let state = {
     currentPromptId: null,
     currentAnimationId: null,
     backgroundNoise: null,
+    // --- NUOVO STATO ---
+    isAutoAdvancing: false, // Traccia se l'avanzamento automatico è attivo
 };
