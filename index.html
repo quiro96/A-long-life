@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Aggiorna il titolo se vuoi -->
+    <title>A Long Life (Modular)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Non carichiamo più Tone.js qui, verrà gestito dal JS se necessario,
+         ma è meglio lasciarlo per semplicità o se qualche animazione lo usasse direttamente.
+         In alternativa, rimuovilo se sei sicuro che solo audio.js lo userà via import. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <style>
+        /* Basic styles */
+        body, html {
+            margin: 0; padding: 0; height: 100%;
+            overflow: hidden; font-family: 'Amatic SC', cursive;
+            background-color: #000000; color: #ffffff;
+        }
+        .container {
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; width: 100%; position: relative;
+        }
+        /* Title */
+        #title-container {
+            position: absolute; top: 0; left: 0; height: 100vh; width: 100%;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 3; pointer-events: none;
+        }
+        /* Assicurati che H1 abbia l'ID corretto */
+        #title-h1 {
+            font-size: 3.5rem; font-weight: 700; opacity: 0; pointer-events: none;
+            transition: opacity 1.5s ease-in-out; /* Fade gestito da classi */
+        }
+        #title-h1.title-visible { opacity: 1; }
+        #title-h1.title-hidden { opacity: 0; }
+
+        /* Prompt */
+        #prompt-container {
+            position: absolute; left: 75%; top: 25%;
+            transform: translate(-50%, -50%); width: 35%;
+            text-align: left; z-index: 2; pointer-events: none;
+        }
+        #current-prompt {
+            font-weight: 400; font-size: 1.3rem;
+            pointer-events: none; line-height: 1.3;
+            opacity: 0; /* Stato base nascosto */
+            transition: opacity 1.5s ease-in-out; /* Transizione fade in/out */
+        }
+        #current-prompt.visible { opacity: 1; }
+
+        /* Timeline */
+        #time-line-container {
+            position: absolute; top: 50%; left: 0; width: 100%; height: 8px;
+            transform: translateY(-50%); z-index: 0;
+            transition: opacity 1.0s ease-out; opacity: 1;
+        }
+        #time-line-container.timeline-hidden { opacity: 0; pointer-events: none; }
+        #time-line {
+            position: absolute; height: 100%; background-color: #ffffff;
+            width: 0px; left: 0; top: 0; border-radius: 0 4px 4px 0;
+            box-shadow: 0 0 0px rgba(255, 255, 255, 0);
+            /* transizione box-shadow impostata da JS */
+        }
+
+        /* Year Grid - Centered 25% from bottom */
+        #year-grid-container {
+            position: absolute;
+            /* Posiziona il bordo superiore al 75% dall'alto */
+            top: 75%;
+             /* Sposta l'elemento verso l'alto della metà della sua altezza */
+            transform: translateY(-50%);
+            /* Rimuovi 'bottom' se presente */
+            /* bottom: 40px; */ /* <-- Assicurati che non ci sia più */
+
+            /* Proprietà orizzontali e altre rimangono invariate */
+            width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+            left: 0;
+            right: 0;
+            height: auto;
+            display: grid;
+            grid-template-columns: repeat(20, 1fr);
+            gap: 2px;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 1.0s ease-in;
+        }
+        #year-grid-container.visible { opacity: 1; }
+
+        .grid-cell {
+            border: 1px solid #444; background-color: transparent;
+            position: relative; aspect-ratio: 1 / 1;
+        }
+        .year-square {
+            position: absolute; top: 3px; bottom: 3px; left: 3px; right: 3px;
+            background-color: white; opacity: 0;
+            transition: opacity 0.5s ease-in;
+        }
+
+        /* Timer */
+        #timer-display {
+            position: absolute; top: 15px; right: 15px;
+            font-size: 1.2rem; font-weight: 700; color: #ffffff;
+            background-color: rgba(0, 0, 0, 0.6); padding: 4px 8px;
+            border-radius: 5px; z-index: 10; font-family: 'Amatic SC', cursive;
+        }
+
+        /* Contenitore Animazioni */
+        #animation-container {
+            position: absolute; left: 25%; top: 25%;
+            transform: translate(-50%, -50%);
+            width: 40%; height: 30%; pointer-events: none;
+            opacity: 0; /* Stato base nascosto */
+            transition: opacity 1.5s ease-in-out; /* Transizione fade in/out */
+            z-index: 1; overflow: hidden; /* Necessario per alcune animazioni interne */
+            display: flex; justify-content: center; align-items: center;
+        }
+         #animation-container.visible { opacity: 1; }
+
+        /* Elementi Animazioni (CSS Invariato) */
+        .happy-circle { position: absolute; width: 8px; height: 8px; background-color: rgba(255, 255, 255, 0.7); border-radius: 50%; animation: floatUp 6s infinite ease-in-out; bottom: 0; opacity: 0; }
+        @keyframes floatUp { 0% { transform: translateY(0); opacity: 0; } 25%, 75% { opacity: 0.7; } 100% { transform: translateY(-150px); opacity: 0; } }
+        .fade-particle { position: absolute; width: 5px; height: 5px; background-color: rgba(255, 255, 255, 0.6); border-radius: 1px; animation: fadeOutParticle 1.5s infinite ease-out; opacity: 0; }
+        @keyframes fadeOutParticle { 0% { opacity: 0.7; transform: translate(0, 0); } 100% { opacity: 0; transform: translate(10px, -20px); } }
+        #brain-svg { width: 80%; height: 80%; stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: drawBrain 3s ease-in-out forwards; stroke: white; stroke-width: 1.5; fill: none; }
+        @keyframes drawBrain { to { stroke-dashoffset: 0; } }
+        .stacking-block { position: absolute; width: 15px; height: 10px; background-color: white; border: 1px solid #aaa; opacity: 0; animation: stackBlock 4s ease-in-out forwards; }
+        @keyframes stackBlock { 0% { opacity: 0; transform: translateY(20px); } 50% { opacity: 1; } 100% { opacity: 1; transform: translateY(0); } }
+        .stacking-block:nth-child(1) { bottom: 0; left: 45%; animation-delay: 0s; } .stacking-block:nth-child(2) { bottom: 10px; left: 45%; animation-delay: 0.5s; } .stacking-block:nth-child(3) { bottom: 20px; left: 45%; animation-delay: 1s; } .stacking-block:nth-child(4) { bottom: 0px; left: 55%; animation-delay: 0.2s; } .stacking-block:nth-child(5) { bottom: 10px; left: 55%; animation-delay: 0.7s; }
+        .intertwining-circle { position: absolute; width: 40px; height: 40px; border: 2px solid white; border-radius: 50%; opacity: 0; animation: intertwine 5s infinite ease-in-out alternate; }
+        .intertwining-circle:nth-child(1) { top: 30%; left: 30%; animation-delay: 0s; } .intertwining-circle:nth-child(2) { top: 30%; left: 50%; animation-delay: 0.5s; } .intertwining-circle:nth-child(3) { top: 50%; left: 40%; animation-delay: 1s; }
+        @keyframes intertwine { 0% { transform: scale(0.8); opacity: 0.3; } 100% { transform: scale(1.1); opacity: 0.8; } }
+        #footprint-svg { width: 60%; height: 60%; stroke: white; stroke-width: 1.5; fill: none; stroke-dasharray: 200; stroke-dashoffset: 200; animation: drawFootprint 2s ease-out forwards; }
+        @keyframes drawFootprint { to { stroke-dashoffset: 0; } }
+        #speech-bubble-svg { width: 50%; height: 50%; stroke: white; stroke-width: 1.5; fill: none; opacity: 0; animation: fadeInSpeechBubble 1s forwards; }
+        @keyframes fadeInSpeechBubble { from { opacity: 0; } to { opacity: 1; } }
+        .grid-line { position: absolute; background-color: rgba(255,255,255,0.4); opacity: 0; animation: drawGridLine 2s forwards; }
+        .grid-line.horizontal { left: 10%; right: 10%; height: 1px; } .grid-line.vertical { top: 10%; bottom: 10%; width: 1px; }
+        @keyframes drawGridLine { to { opacity: 1; } }
+        .running-dot { position: absolute; width: 5px; height: 5px; background-color: white; border-radius: 50%; animation: runAcross 3s linear infinite; }
+        @keyframes runAcross { 0% { left: -5%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { left: 105%; opacity: 0;} }
+    </style>
+</head>
+<body>
+    <!-- Assicurati che tutti gli elementi abbiano gli ID corretti usati in config.js -->
+    <div id="title-container" class="container">
+        <h1 id="title-h1">A LONG LIFE</h1>
+    </div>
+    <div id="prompt-container">
+        <p id="current-prompt"></p>
+    </div>
+    <div id="time-line-container">
+        <div id="time-line"></div>
+    </div>
+    <div id="year-grid-container">
+        <!-- Le celle verranno create da JS -->
+    </div>
+    <div id="timer-display">0.0s</div>
+    <div id="animation-container">
+        <!-- Il contenuto dell'animazione verrà creato da JS -->
+    </div>
+
+    <!--
+      RIMOSSO IL BLOCCO SCRIPT GRANDE DA QUI.
+      Ora carichiamo solo il punto di ingresso del modulo JS.
+    -->
+    <script type="module" src="js/init.js"></script>
+
+</body>
+</html>
