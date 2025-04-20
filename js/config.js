@@ -69,23 +69,33 @@ export const config = {
         gridCell: 'grid-cell',
     },
 
-    // --- NUOVA SEQUENZA timelineEvents ---
+    // --- AGGIORNAMENTO timelineEvents ---
     timelineEvents: [
-        // Prima del titolo
-        { start: 8,  end: 15, type: 'animation', id: 'anim_happy', text: "Giorni felici..." }, // +7s, Animazione Happy
-        { start: 20, end: 27, type: 'prompt',    id: 'text_noMemory', text: "Di cui non ho memoria." }, // +7s, Solo Testo
+        // Sequenza Iniziale (invariata)
+        { start: 8,  end: 15, type: 'animation', id: 'anim_happy', text: "Giorni felici..." },
+        { start: 20, end: 27, type: 'prompt',    id: 'text_noMemory', text: "Di cui non ho memoria." },
 
-        // Titolo
-        { start: 30, end: 40, type: 'title' }, // Durata 10s
+        // Titolo (invariato)
+        { start: 30, end: 40, type: 'title' },
 
-        // Dopo il titolo
-        { start: 42, end: 52, type: 'animation', id: 'anim_brain', text: "Nei primi istanti di vita, il cervello non sa ancora come immagazzinare informazioni nella memoria a lungo termine." }, // +10s, Animazione Cervello
+        // Dopo il titolo (invariato)
+        { start: 42, end: 52, type: 'animation', id: 'anim_brain', text: "Nei primi istanti di vita, il cervello non sa ancora come immagazzinare informazioni nella memoria a lungo termine." },
 
-        // Aggiungi qui altri eventi futuri se necessario, mantenendo una spaziatura
-        // { start: 60, end: 67, type: '...', id: '...', text: '...' }
+        // --- NUOVI EVENTI ---
+        // Usiamo l'animazione dei blocchi per la torre di Hanoi
+        { start: 55, end: 62, type: 'animation', id: 'anim_school', text: "Ricordo la torre di Hanoi!" }, // +7s, Animazione Blocchi
+
+        // Usiamo l'animazione del fumetto (voci) per le parole del papà
+        { start: 67, end: 74, type: 'animation', id: 'anim_voices', text: "E le parole di mio papà:" }, // +7s, Animazione Fumetto
+
+        // Usiamo l'animazione delle particelle (gioia/emozione) per "Sei un sole"
+        { start: 79, end: 86, type: 'animation', id: 'anim_particles', text: "'Sei un sole.'" }, // +7s, Animazione Particelle
+
+        // Aggiungi qui altri eventi futuri...
+        // { start: 95, end: 102, type: '...', id: '...', text: '...' }
 
     ],
-    // --- FINE NUOVA SEQUENZA ---
+    // --- FINE AGGIORNAMENTO ---
 
     // Prompt Inattività
     inactivityPrompts: {
@@ -93,16 +103,16 @@ export const config = {
         shine: "Non dimenticarti di risplendere"
     },
 
-    // Mappa ID animazione -> Nome funzione JS
+    // Mappa ID animazione -> Nome funzione JS (invariata, contiene tutte le animazioni)
     animationCreatorMap: {
         'anim_happy': 'createHappyAnimation',
-        'anim_particles': 'createParticleAnimation', // Non usata nella nuova sequenza ma la lasciamo
+        'anim_particles': 'createParticleAnimation',
         'anim_brain': 'createBrainAnimation',
-        'anim_school': 'createStackingBlocksAnimation', // Non usata ma lasciamo
-        'anim_friends': 'createIntertwiningCirclesAnimation', // Non usata ma lasciamo
-        'anim_steps': 'createFootprintAnimation', // Non usata ma lasciamo
-        'anim_voices': 'createSpeechBubbleAnimation', // Non usata ma lasciamo
-        'anim_rules': 'createGridLinesAnimation', // Non usata ma lasciamo
-        'anim_running': 'createRunningDotsAnimation', // Non usata ma lasciamo
+        'anim_school': 'createStackingBlocksAnimation',
+        'anim_friends': 'createIntertwiningCirclesAnimation',
+        'anim_steps': 'createFootprintAnimation',
+        'anim_voices': 'createSpeechBubbleAnimation',
+        'anim_rules': 'createGridLinesAnimation',
+        'anim_running': 'createRunningDotsAnimation',
     }
-}; // Chiusura dell'oggetto config principale
+};
