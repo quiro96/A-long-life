@@ -1,4 +1,4 @@
-// js/config.js
+// js/config.js -
 export const config = {
     // Timing & Speed
     speedPxPerSec: 300, timeMultiplier: 1.5, initialInactivityDelayMs: 4000,
